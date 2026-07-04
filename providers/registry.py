@@ -4,7 +4,7 @@ Free providers (Groq, Google) come first.
 """
 
 from dataclasses import dataclass
-from elio.providers.base import BaseProvider
+from providers.base import BaseProvider
 
 
 @dataclass
@@ -188,19 +188,19 @@ def get_provider(alias: str) -> BaseProvider:
     entry = resolve_model(alias)
 
     if entry.provider_name == "groq":
-        from elio.providers.groq_provider import GroqProvider
+        from providers.groq_provider import GroqProvider
         return GroqProvider()
 
     if entry.provider_name == "anthropic":
-        from elio.providers.claude import ClaudeProvider
+        from providers.claude import ClaudeProvider
         return ClaudeProvider()
 
     if entry.provider_name == "openai":
-        from elio.providers.openai import OpenAIProvider
+        from providers.openai import OpenAIProvider
         return OpenAIProvider()
 
     if entry.provider_name == "google":
-        from elio.providers.gemini import GeminiProvider
+        from providers.gemini import GeminiProvider
         return GeminiProvider()
 
     raise ValueError(f"No provider class for '{entry.provider_name}'")
