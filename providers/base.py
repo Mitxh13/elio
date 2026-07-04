@@ -39,6 +39,7 @@ class BaseProvider(ABC):
         messages: list[Message],
         model: str,
         files: list[FileAttachment] | None = None,
+        alias: str | None = None,
     ) -> AsyncIterator[str]:
         """Yield response tokens one by one as they stream from the API."""
         ...

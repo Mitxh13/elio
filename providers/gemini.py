@@ -8,22 +8,22 @@ from typing import AsyncIterator
 from google import genai
 from google.genai import types
 
-from providers.base import BaseProvider, Message, FileAttachment, ModelInfo
-from auth.manager import get_api_key
+from elio.providers.base import BaseProvider, Message, FileAttachment, ModelInfo
+from elio.auth.manager import get_api_key
 
 
 # ── Model strings ─────────────────────────────────────────────────────────────
 # Keep these in sync with providers/registry.py
 
-GEMINI_FAST      = "gemini-2.0-flash"        # free tier, no thinking support
-GEMINI_PRO       = "gemini-2.5-pro"          # paid, default thinking
-GEMINI_THINKING  = "gemini-2.5-pro"          # same model, explicit thinking budget
+GEMINI_FAST      = "gemini-2.5-flash"         # free tier, fast responses
+GEMINI_PRO       = "gemini-2.5-pro"           # most capable, default thinking
+GEMINI_THINKING  = "gemini-2.5-pro"           # same model, explicit thinking budget
 
 
 class GeminiProvider(BaseProvider):
 
     def __init__(self):
-        from auth.oauth import get_google_credentials
+        from elio.auth.oauth import get_google_credentials
         creds = get_google_credentials()
         if creds:
             self.client = genai.Client(credentials=creds)
@@ -41,7 +41,7 @@ class GeminiProvider(BaseProvider):
         )
 
     def validate_credentials(self) -> bool:
-        from auth.oauth import is_google_oauth_logged_in
+        from elio.auth.oauth import is_google_oauth_logged_in
         return get_api_key("google") is not None or is_google_oauth_logged_in()
 
     async def list_models(self) -> list[ModelInfo]:
@@ -119,7 +119,7 @@ class GeminiProvider(BaseProvider):
 
         # ── 3. Thinking config — only for models that support it ──────────────
         #
-        #  gemini-fast      (gemini-2.0-flash)  → NO thinking support, skip config entirely
+        #  gemini-fast      (gemini-2.5-flash)  → NO explicit thinking, let model decide
         #  gemini-pro       (gemini-2.5-pro)     → default thinking (model decides)
         #  gemini-thinking  (gemini-2.5-pro)     → explicit high budget for deep reasoning
         #
@@ -129,8 +129,8 @@ class GeminiProvider(BaseProvider):
             generate_config = types.GenerateContentConfig(
                 thinking_config=types.ThinkingConfig(thinking_budget=8192),
             )
-        # gemini-fast uses gemini-2.0-flash which does NOT support thinking_config —
-        # passing one would cause a 400 error, so we leave generate_config as None.
+        # gemini-fast uses gemini-2.5-flash which handles thinking internally —
+        # passing an explicit config may cause issues, so we leave generate_config as None.
 
         stream_kwargs: dict = {"model": model, "contents": contents}
         if generate_config:
@@ -169,7 +169,7 @@ class GeminiProvider(BaseProvider):
                         f"[dim]  Check providers/registry.py — the model string for "
                         f"'{alias}' may be outdated.\n"
                         f"  Current correct strings: "
-                        f"gemini-2.0-flash · gemini-2.5-pro[/dim]\n"
+                        f"gemini-2.5-flash · gemini-2.5-pro[/dim]\n"
                     )
                     return
 

@@ -4,7 +4,7 @@ Free providers (Groq, Google) come first.
 """
 
 from dataclasses import dataclass
-from providers.base import BaseProvider
+from elio.providers.base import BaseProvider
 
 
 @dataclass
@@ -72,39 +72,47 @@ MODEL_REGISTRY: dict[str, ModelEntry] = {
         is_free=True,
     ),
 
-# ─── Google Gemini 3 (FREE via AI Studio) — matches website lineup ───
+# ─── Google Gemini (FREE via AI Studio) ──────────────────────────────
     "gemini-fast": ModelEntry(
         alias="gemini-fast",
-        display_name="Gemini 3 Fast",
-        model_string="gemini-3-flash-preview",
+        display_name="Gemini 2.5 Flash",
+        model_string="gemini-2.5-flash",
         provider_name="google",
-        description="Answers quickly",
+        description="Fast & free — great for quick questions",
         is_free=True,
     ),
     "gemini-thinking": ModelEntry(
         alias="gemini-thinking",
-        display_name="Gemini 3 Thinking",
-        model_string="gemini-3.1-pro-preview",
+        display_name="Gemini 2.5 Pro (Thinking)",
+        model_string="gemini-2.5-pro",
         provider_name="google",
-        description="Solves complex problems",
+        description="Deep reasoning with extended thinking",
         is_free=True,
     ),
     "gemini-pro": ModelEntry(
         alias="gemini-pro",
-        display_name="Gemini 3.1 Pro",
-        model_string="gemini-3.1-pro-preview",
+        display_name="Gemini 2.5 Pro",
+        model_string="gemini-2.5-pro",
         provider_name="google",
-        description="Advanced math and code with 3.1 Pro",
+        description="Most capable — complex reasoning & math",
         is_free=True,
     ),
 
     # ─── Anthropic Claude (PAID) ──────────────────────────────────────────
     "claude-sonnet": ModelEntry(
         alias="claude-sonnet",
-        display_name="Claude Sonnet 4.6",
-        model_string="claude-sonnet-4-6",
+        display_name="Claude Sonnet 5",
+        model_string="claude-sonnet-5",
         provider_name="anthropic",
         description="Best for coding & reasoning",
+        is_free=False,
+    ),
+    "claude-opus": ModelEntry(
+        alias="claude-opus",
+        display_name="Claude Opus 4.8",
+        model_string="claude-opus-4-8",
+        provider_name="anthropic",
+        description="Most capable — complex agentic tasks",
         is_free=False,
     ),
     "claude-haiku": ModelEntry(
@@ -122,7 +130,7 @@ MODEL_REGISTRY: dict[str, ModelEntry] = {
         display_name="GPT-4o Mini",
         model_string="gpt-4o-mini",
         provider_name="openai",
-        description="Fast, cheap",
+        description="Fast & cheap",
         is_free=False,
     ),
     "gpt-4o": ModelEntry(
@@ -130,7 +138,7 @@ MODEL_REGISTRY: dict[str, ModelEntry] = {
         display_name="GPT-4o",
         model_string="gpt-4o",
         provider_name="openai",
-        description="Multi-modal, writing",
+        description="Multi-modal, writing & creativity",
         is_free=False,
     ),
     "gpt-4.1": ModelEntry(
@@ -149,15 +157,23 @@ MODEL_REGISTRY: dict[str, ModelEntry] = {
         description="Fast latest-gen",
         is_free=False,
     ),
+    "gpt-4.1-nano": ModelEntry(
+        alias="gpt-4.1-nano",
+        display_name="GPT-4.1 Nano",
+        model_string="gpt-4.1-nano",
+        provider_name="openai",
+        description="Ultra-fast, cheapest",
+        is_free=False,
+    ),
 }
 
 # ── Models grouped by provider ───────────────────────────────────────────────
 
 PROVIDER_MODELS: dict[str, list[str]] = {
-    "groq":      ["llama-3.3-70b", "llama-3.1-8b"], 
+    "groq":      ["llama-3.3-70b", "llama-3.1-8b"],
     "google":    ["gemini-fast", "gemini-thinking", "gemini-pro"],
-    "anthropic": ["claude-sonnet", "claude-haiku"],
-    "openai":    ["gpt-4o-mini", "gpt-4o", "gpt-4.1", "gpt-4.1-mini"],
+    "anthropic": ["claude-sonnet", "claude-opus", "claude-haiku"],
+    "openai":    ["gpt-4o-mini", "gpt-4o", "gpt-4.1", "gpt-4.1-mini", "gpt-4.1-nano"],
 }
 
 
@@ -172,19 +188,19 @@ def get_provider(alias: str) -> BaseProvider:
     entry = resolve_model(alias)
 
     if entry.provider_name == "groq":
-        from providers.groq_provider import GroqProvider
+        from elio.providers.groq_provider import GroqProvider
         return GroqProvider()
 
     if entry.provider_name == "anthropic":
-        from providers.claude import ClaudeProvider
+        from elio.providers.claude import ClaudeProvider
         return ClaudeProvider()
 
     if entry.provider_name == "openai":
-        from providers.openai import OpenAIProvider
+        from elio.providers.openai import OpenAIProvider
         return OpenAIProvider()
 
     if entry.provider_name == "google":
-        from providers.gemini import GeminiProvider
+        from elio.providers.gemini import GeminiProvider
         return GeminiProvider()
 
     raise ValueError(f"No provider class for '{entry.provider_name}'")

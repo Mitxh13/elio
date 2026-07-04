@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "elio-cli"
-version = "0.2.6"
+version = "0.3.0"
 description = "Unified AI Coding Agent — Claude, Gemini, ChatGPT in one terminal"
 requires-python = ">=3.11"
 dependencies = [

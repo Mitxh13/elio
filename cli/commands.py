@@ -13,6 +13,7 @@ import typer
 from rich.console import Console
 from rich.prompt import Prompt
 from rich.table import Table
+from rich import box
 
 from auth.manager import (
     set_api_key, get_api_key, delete_api_key,
@@ -21,7 +22,7 @@ from auth.manager import (
 
 console = Console()
 
-CURRENT_VERSION = "0.2.6"
+CURRENT_VERSION = "0.3.0"
 GITHUB_API      = "https://api.github.com/repos/Elio-labs/elio/releases/latest"
 GITHUB_REPO     = "https://github.com/Elio-labs/elio.git"
 
@@ -41,7 +42,7 @@ def run_login(provider: str | None = None):
         providers_to_add = PROVIDERS
 
     console.print()
-    console.print("[bold #6c71c4]Elio — API Key Setup[/bold #6c71c4]")
+    console.print("[bold #d4a574]Elio — API Key Setup[/bold #d4a574]")
     console.print("[dim]Keys are stored securely in your OS keyring (never in plain text).[/dim]")
     console.print()
 
@@ -104,7 +105,11 @@ def run_status():
     """Show which providers are configured."""
     from providers.registry import PROVIDERS as PROV_INFO, PROVIDER_ORDER
 
-    table = Table(title="Provider Status", border_style="#6c71c4")
+    table = Table(
+        title="Provider Status",
+        border_style="#d4a574",
+        box=box.ROUNDED,
+    )
     table.add_column("Provider", style="cyan")
     table.add_column("Brand",    style="white")
     table.add_column("Status")
@@ -137,7 +142,8 @@ def run_models():
 
         table = Table(
             title=f"{info.name} ({info.brand})",
-            border_style="#6c71c4",
+            border_style="#d4a574",
+            box=box.ROUNDED,
         )
         table.add_column("Alias",       style="cyan bold")
         table.add_column("Model ID",    style="white")
@@ -167,7 +173,11 @@ def run_history():
         console.print("[dim]No saved sessions yet.[/dim]")
         return
 
-    table = Table(title="Recent Sessions", border_style="#6c71c4")
+    table = Table(
+        title="Recent Sessions",
+        border_style="#d4a574",
+        box=box.ROUNDED,
+    )
     table.add_column("ID",           style="cyan")
     table.add_column("Title",        style="white")
     table.add_column("Model",        style="yellow")
@@ -266,46 +276,52 @@ def run_update():
     Check GitHub releases for a newer version and install it via pip from git.
     No PyPI required — installs directly from the GitHub repo tag.
     """
-    console.print()
-    console.print(f"  [bold #6c71c4]Elio Update[/bold #6c71c4]")
-    console.print(f"  Current version: [bold]{CURRENT_VERSION}[/bold]")
-    console.print()
-    console.print("  [dim]Checking GitHub for the latest release...[/dim]")
+    from rich.status import Status
 
-    latest_version, latest_tag = _get_latest_github_version()
+    console.print()
+    console.print(f"  [bold #d4a574]╭─── Elio Update ───╮[/bold #d4a574]")
+    console.print(f"  [bold #d4a574]│[/bold #d4a574]")
+    console.print(f"  [bold #d4a574]│[/bold #d4a574]  Current version: [bold]{CURRENT_VERSION}[/bold]")
+    console.print(f"  [bold #d4a574]│[/bold #d4a574]")
+
+    # Check with spinner
+    with Status("  Checking GitHub for updates...", console=console, spinner="dots") as status:
+        latest_version, latest_tag = _get_latest_github_version()
 
     if latest_version is None:
         console.print(
-            "  [yellow]!  Could not reach GitHub. Check your internet connection.[/yellow]\n"
-            f"  [dim]Manual update: pip install git+{GITHUB_REPO}[/dim]"
+            f"  [bold #d4a574]│[/bold #d4a574]  [yellow]!  Could not reach GitHub.[/yellow]\n"
+            f"  [bold #d4a574]│[/bold #d4a574]  [dim]Check your internet connection.[/dim]\n"
+            f"  [bold #d4a574]│[/bold #d4a574]  [dim]Manual: pip install git+{GITHUB_REPO}[/dim]\n"
+            f"  [bold #d4a574]╰────────────────────╯[/bold #d4a574]"
         )
         console.print()
         return
 
-    console.print(f"  Latest version:  [bold]{latest_version}[/bold]")
-    console.print()
+    console.print(f"  [bold #d4a574]│[/bold #d4a574]  Latest version:  [bold]{latest_version}[/bold]")
+    console.print(f"  [bold #d4a574]│[/bold #d4a574]")
 
     # ── Proper semantic-version comparison ──────────────────────────────────
-    # String comparison fails: "0.9.0" > "0.10.0" incorrectly.
-    # Tuple comparison is correct: (0, 9, 0) < (0, 10, 0) ✓
     current_t = _parse_version(CURRENT_VERSION)
     latest_t  = _parse_version(latest_version)
 
     if latest_t <= current_t:
-        console.print("  [green]✓ You are already on the latest version.[/green]")
+        console.print(f"  [bold #d4a574]│[/bold #d4a574]  [green]✓ You are already on the latest version.[/green]")
+        console.print(f"  [bold #d4a574]╰────────────────────╯[/bold #d4a574]")
         console.print()
         return
 
-    # ── New version available — install it ──────────────────────────────────
+    # ── New version available — install it ──────────────────────────────
     install_url = f"git+{GITHUB_REPO}@{latest_tag}"
 
     console.print(
-        f"  [bold green]New version available: "
+        f"  [bold #d4a574]│[/bold #d4a574]  [bold green]New version available: "
         f"{CURRENT_VERSION} → {latest_version}[/bold green]\n"
-        f"  [dim]Source: {install_url}[/dim]\n"
-        f"  [dim]Installing via pip...[/dim]"
+        f"  [bold #d4a574]│[/bold #d4a574]  [dim]Source: {install_url}[/dim]\n"
+        f"  [bold #d4a574]│[/bold #d4a574]"
     )
-    console.print()
+
+    console.print(f"  [bold #d4a574]│[/bold #d4a574]  [dim]Installing via pip...[/dim]")
 
     try:
         process = subprocess.Popen(
@@ -321,32 +337,33 @@ def run_update():
         for line in process.stdout:
             line = line.rstrip()
             if line:
-                console.print(f"  [dim]{line}[/dim]", highlight=False)
+                console.print(f"  [bold #d4a574]│[/bold #d4a574]  [dim]{line}[/dim]", highlight=False)
 
         process.wait()
 
+        console.print(f"  [bold #d4a574]│[/bold #d4a574]")
+
         if process.returncode == 0:
-            console.print()
             console.print(
-                f"  [bold green]✓ Elio updated to v{latest_version} successfully![/bold green]\n"
-                "  [dim]Restart your terminal for the update to take effect.[/dim]"
+                f"  [bold #d4a574]│[/bold #d4a574]  [bold green]✓ Elio updated to v{latest_version} successfully![/bold green]\n"
+                f"  [bold #d4a574]│[/bold #d4a574]  [dim]Restart your terminal for the update to take effect.[/dim]"
             )
         else:
-            console.print()
             console.print(
-                f"  [red]pip exited with code {process.returncode}.[/red]\n"
-                f"  [dim]Try manually: pip install git+{GITHUB_REPO}[/dim]"
+                f"  [bold #d4a574]│[/bold #d4a574]  [red]pip exited with code {process.returncode}.[/red]\n"
+                f"  [bold #d4a574]│[/bold #d4a574]  [dim]Try manually: pip install git+{GITHUB_REPO}[/dim]"
             )
 
     except FileNotFoundError:
         console.print(
-            "  [red]pip not found. Make sure Python is in your PATH.[/red]\n"
-            f"  [dim]Manual install: pip install git+{GITHUB_REPO}@{latest_tag}[/dim]"
+            f"  [bold #d4a574]│[/bold #d4a574]  [red]pip not found. Make sure Python is in your PATH.[/red]\n"
+            f"  [bold #d4a574]│[/bold #d4a574]  [dim]Manual: pip install git+{GITHUB_REPO}@{latest_tag}[/dim]"
         )
     except Exception as e:
         console.print(
-            f"  [red]Unexpected error during update: {e}[/red]\n"
-            f"  [dim]Manual install: pip install git+{GITHUB_REPO}@{latest_tag}[/dim]"
+            f"  [bold #d4a574]│[/bold #d4a574]  [red]Unexpected error: {e}[/red]\n"
+            f"  [bold #d4a574]│[/bold #d4a574]  [dim]Manual: pip install git+{GITHUB_REPO}@{latest_tag}[/dim]"
         )
 
+    console.print(f"  [bold #d4a574]╰────────────────────╯[/bold #d4a574]")
     console.print()

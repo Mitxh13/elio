@@ -25,6 +25,7 @@ if sys.platform == "win32":
 from rich.console import Console
 from rich.table import Table
 from rich.panel import Panel
+from rich import box
 
 from providers.registry import (
     MODEL_REGISTRY, PROVIDERS, PROVIDER_ORDER, PROVIDER_MODELS,
@@ -50,13 +51,13 @@ class CommandResult:
     should_exit: bool = False         # exit the chat loop
 
 
-VERSION = "0.2.6"
+VERSION = "0.3.0"
 
 HELP_TEXT = """
-[bold #6c71c4]--- Elio Commands ---[/bold #6c71c4]
+[bold #d4a574]╭─── Elio Commands ───╮[/bold #d4a574]
 
 [bold]Chat & AI[/bold]
-  [cyan]/provider[/cyan]           Switch AI provider and model (two-level selector)
+  [cyan]/provider[/cyan]           Switch AI provider and model
   [cyan]/model[/cyan] [dim][alias][/dim]    Quick-switch model within current provider
   [cyan]/models[/cyan]             List all models for current provider
   [cyan]/clear[/cyan]              Clear conversation context and screen
@@ -80,6 +81,7 @@ HELP_TEXT = """
   [cyan]/exit[/cyan]               Exit Elio
 
 [dim]Shortcuts: Ctrl+C = cancel, Ctrl+D = exit[/dim]
+[bold #d4a574]╰──────────────────────╯[/bold #d4a574]
 """
 
 
@@ -103,7 +105,7 @@ async def route_command(
 
     # ── /version ────────────────────────────────────────────────────────
     if name == "/version":
-        return CommandResult(output=f"[bold #6c71c4]Elio[/bold #6c71c4] v{VERSION}")
+        return CommandResult(output=f"[bold #d4a574]Elio[/bold #d4a574] v{VERSION}")
 
     # ── /exit or /quit ──────────────────────────────────────────────────
     if name in ("/exit", "/quit"):
@@ -169,7 +171,11 @@ async def route_command(
         models = get_models_for_provider(current_provider)
         info = PROVIDERS[current_provider]
 
-        table = Table(title=f"Models — {info.name} ({info.brand})", border_style="#6c71c4")
+        table = Table(
+            title=f"Models — {info.name} ({info.brand})",
+            border_style="#d4a574",
+            box=box.ROUNDED,
+        )
         table.add_column("#", style="bold", width=3)
         table.add_column("Alias", style="cyan")
         table.add_column("Model", style="white")
@@ -202,7 +208,7 @@ async def route_command(
         limit = config.max_context_tokens
         pct = (100 * estimated // limit) if limit > 0 else 0
         bar_filled = int(pct / 5)
-        bar = "[green]" + "#" * bar_filled + "[/green]" + "[dim].[/dim]" * (20 - bar_filled)
+        bar = "[green]" + "█" * bar_filled + "[/green]" + "[dim]░[/dim]" * (20 - bar_filled)
         return CommandResult(
             output=f"\n  {bar} [cyan]~{estimated:,} / {limit:,} tokens ({pct}%)[/cyan]\n"
         )
@@ -214,9 +220,9 @@ async def route_command(
             info = PROVIDERS[key]
             has_key = get_api_key(key) is not None
             if has_key:
-                lines.append(f"    [green]+[/green] {info.name} ({info.brand}) -- [green]Connected[/green]")
+                lines.append(f"    [green]●[/green] {info.name} ({info.brand}) — [green]Connected[/green]")
             else:
-                lines.append(f"    [dim]-[/dim] {info.name} ({info.brand}) -- [dim]Not configured[/dim]")
+                lines.append(f"    [dim]○[/dim] {info.name} ({info.brand}) — [dim]Not configured[/dim]")
         lines.append("")
         return CommandResult(output="\n".join(lines))
 
@@ -226,7 +232,11 @@ async def route_command(
         if not sessions:
             return CommandResult(output="[dim]  No sessions found.[/dim]")
 
-        table = Table(title="Recent Sessions", border_style="#6c71c4")
+        table = Table(
+            title="Recent Sessions",
+            border_style="#d4a574",
+            box=box.ROUNDED,
+        )
         table.add_column("ID", style="cyan")
         table.add_column("Title", style="white")
         table.add_column("Model", style="yellow")
@@ -299,7 +309,7 @@ async def route_command(
 
             lines = content.count("\n") + 1
             return CommandResult(
-                output=f"[green]  >> Read {p.name} ({lines} lines) -- added to context.[/green]"
+                output=f"[green]  >> Read {p.name} ({lines} lines) — added to context.[/green]"
             )
         except Exception as e:
             return CommandResult(output=f"[red]  Error reading file: {e}[/red]", error=True)

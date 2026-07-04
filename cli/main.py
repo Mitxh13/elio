@@ -16,12 +16,12 @@ app = typer.Typer(
 
 console = Console()
 
-VERSION = "0.2.6"
+VERSION = "0.3.0"
 
 
 def version_callback(value: bool):
     if value:
-        console.print(f"[bold #6c71c4]Elio[/bold #6c71c4] version [bold]{VERSION}[/bold]")
+        console.print(f"[bold #d4a574]Elio[/bold #d4a574] version [bold]{VERSION}[/bold]")
         raise typer.Exit()
 
 

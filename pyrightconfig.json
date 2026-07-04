@@ -1,0 +1,6 @@
+{
+  "extraPaths": ["./elio"],
+  "pythonVersion": "3.11",
+  "reportMissingImports": true,
+  "reportMissingModuleSource": false
+}
