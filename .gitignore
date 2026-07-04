@@ -12,3 +12,6 @@ build/
 
 # Installer files
 Output/
+
+#pytest files
+.pytest_cache/
