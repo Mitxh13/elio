@@ -120,11 +120,18 @@ Elio utilizes an alias system to route requests to the best model for the job.
 
 | Alias | Provider | Underlying Model | Best For |
 | :--- | :--- | :--- | :--- |
-| `claude` / `coding` | Anthropic | claude-sonnet-4-5 | Coding, debugging & technical reasoning |
-| `fast` | Anthropic | claude-haiku-4-5 | Fast, cheap tasks |
-| `gemini` / `research` | Google | gemini-2.5-pro | Research, summarization & web-grounded queries |
-| `gpt` / `writing` | OpenAI | gpt-4o | General content writing & creative tasks |
-| `vision` | OpenAI | gpt-4o | Multi-modal vision tasks |
+| `coding` | Anthropic | claude-sonnet-5 | Coding, debugging & technical reasoning |
+| `fast` | Google | gemini-2.5-flash | Fastest free model |
+| `research` | Google | gemini-2.5-pro | Research, summarization & web-grounded queries |
+| `writing` | OpenAI | gpt-5.6-sol | General content writing & creative tasks |
+| `vision` | OpenAI | gpt-5.6-sol | Multi-modal vision tasks |
+| `claude-sonnet` | Anthropic | claude-sonnet-5 | Best for coding & reasoning |
+| `claude-haiku` | Anthropic | claude-haiku-4-5-20251001 | Fast & affordable |
+| `gemini-fast` | Google | gemini-2.5-flash | Fast & free |
+| `gemini-pro` | Google | gemini-2.5-pro | Most capable reasoning |
+| `gpt-sol` | OpenAI | gpt-5.6-sol | Flagship — complex reasoning |
+| `gpt-terra` | OpenAI | gpt-5.6-terra | Balanced intelligence vs cost |
+| `gpt-luna` | OpenAI | gpt-5.6-luna | Fast & affordable |
 
 -----
 
@@ -186,5 +193,5 @@ MIT
 
 -----
 
-v0.2.6
+v0.3.5
 <!-- | [Issues](https://github.com/Elio-labs/elio/issues)  [Contributing](./CONTRIBUTING.md) -->
