@@ -1,3 +1,4 @@
+import logging
 from pathlib import Path
 import toml
 from config.schema import ElioConfig
@@ -37,3 +38,18 @@ def save_config(config: ElioConfig):
 
 def get_config_path() -> Path:
     return CONFIG_PATH
+
+
+def setup_logging(level: str = "INFO"):
+    """Configure logging to write to ~/.elio/logs/elio.log."""
+    ensure_elio_dir()
+    log_file = ELIO_DIR / "logs" / "elio.log"
+    numeric_level = getattr(logging, level.upper(), logging.INFO)
+
+    logging.basicConfig(
+        level=numeric_level,
+        format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+        handlers=[
+            logging.FileHandler(str(log_file), encoding="utf-8"),
+        ],
+    )
