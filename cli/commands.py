@@ -22,7 +22,7 @@ from auth.manager import (
 
 console = Console()
 
-CURRENT_VERSION = "0.3.0"
+CURRENT_VERSION = "0.3.5"
 GITHUB_API      = "https://api.github.com/repos/Elio-labs/elio/releases/latest"
 GITHUB_REPO     = "https://github.com/Elio-labs/elio.git"
 
@@ -311,59 +311,56 @@ def run_update():
         console.print()
         return
 
-    # ── New version available — install it ──────────────────────────────
-    install_url = f"git+{GITHUB_REPO}@{latest_tag}"
+    # ── New version available — auto-download installer ────────────────────
+    import tempfile
+    import urllib.request
+    import os
+    import sys
+    import platform
+    import subprocess
+    from rich.status import Status
+
+    os_name = platform.system()
+    if os_name == "Windows":
+        filename = "Elio-Setup.exe"
+    elif os_name == "Darwin":
+        filename = "Elio-macOS.pkg"
+    else:
+        # Linux fallback
+        filename = f"elio_{latest_version}_amd64.deb"
+
+    download_url = f"https://github.com/Elio-labs/elio/releases/download/{latest_tag}/{filename}"
+    temp_dir = tempfile.gettempdir()
+    installer_path = os.path.join(temp_dir, filename)
 
     console.print(
         f"  [bold #d4a574]│[/bold #d4a574]  [bold green]New version available: "
         f"{CURRENT_VERSION} → {latest_version}[/bold green]\n"
-        f"  [bold #d4a574]│[/bold #d4a574]  [dim]Source: {install_url}[/dim]\n"
-        f"  [bold #d4a574]│[/bold #d4a574]"
+        f"  [bold #d4a574]│[/bold #d4a574]  [dim]Downloading {filename}...[/dim]"
     )
 
-    console.print(f"  [bold #d4a574]│[/bold #d4a574]  [dim]Installing via pip...[/dim]")
-
     try:
-        process = subprocess.Popen(
-            [sys.executable, "-m", "pip", "install", "--upgrade", install_url],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,   # merge stderr into stdout
-            text=True,
-            encoding="utf-8",
-            errors="replace",
-        )
+        with Status(f"  Downloading from GitHub...", console=console, spinner="arrow3"):
+            urllib.request.urlretrieve(download_url, installer_path)
+            
+        console.print(f"  [bold #d4a574]│[/bold #d4a574]  [bold green]✓ Download complete![/bold green]")
+        console.print(f"  [bold #d4a574]│[/bold #d4a574]  [dim]Launching installer and exiting Elio...[/dim]")
+        console.print(f"  [bold #d4a574]╰────────────────────╯[/bold #d4a574]")
+        console.print()
 
-        assert process.stdout is not None
-        for line in process.stdout:
-            line = line.rstrip()
-            if line:
-                console.print(f"  [bold #d4a574]│[/bold #d4a574]  [dim]{line}[/dim]", highlight=False)
-
-        process.wait()
-
-        console.print(f"  [bold #d4a574]│[/bold #d4a574]")
-
-        if process.returncode == 0:
-            console.print(
-                f"  [bold #d4a574]│[/bold #d4a574]  [bold green]✓ Elio updated to v{latest_version} successfully![/bold green]\n"
-                f"  [bold #d4a574]│[/bold #d4a574]  [dim]Restart your terminal for the update to take effect.[/dim]"
-            )
+        # Launch the installer
+        if os_name == "Windows":
+            os.startfile(installer_path)
+        elif os_name == "Darwin":
+            subprocess.Popen(["open", installer_path])
         else:
-            console.print(
-                f"  [bold #d4a574]│[/bold #d4a574]  [red]pip exited with code {process.returncode}.[/red]\n"
-                f"  [bold #d4a574]│[/bold #d4a574]  [dim]Try manually: pip install git+{GITHUB_REPO}[/dim]"
-            )
+            subprocess.Popen(["xdg-open", installer_path])
+            
+        # Exit Elio so Windows doesn't lock the running executable
+        sys.exit(0)
 
-    except FileNotFoundError:
-        console.print(
-            f"  [bold #d4a574]│[/bold #d4a574]  [red]pip not found. Make sure Python is in your PATH.[/red]\n"
-            f"  [bold #d4a574]│[/bold #d4a574]  [dim]Manual: pip install git+{GITHUB_REPO}@{latest_tag}[/dim]"
-        )
     except Exception as e:
-        console.print(
-            f"  [bold #d4a574]│[/bold #d4a574]  [red]Unexpected error: {e}[/red]\n"
-            f"  [bold #d4a574]│[/bold #d4a574]  [dim]Manual: pip install git+{GITHUB_REPO}@{latest_tag}[/dim]"
-        )
-
-    console.print(f"  [bold #d4a574]╰────────────────────╯[/bold #d4a574]")
-    console.print()
+        console.print(f"  [bold #d4a574]│[/bold #d4a574]  [red]Download failed: {e}[/red]")
+        console.print(f"  [bold #d4a574]│[/bold #d4a574]  [dim]Please download manually: https://github.com/Elio-labs/elio/releases/latest[/dim]")
+        console.print(f"  [bold #d4a574]╰────────────────────╯[/bold #d4a574]")
+        console.print()

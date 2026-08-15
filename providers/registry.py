@@ -125,44 +125,70 @@ MODEL_REGISTRY: dict[str, ModelEntry] = {
     ),
 
     # ─── OpenAI GPT (PAID) ───────────────────────────────────────────────
-    "gpt-4o-mini": ModelEntry(
-        alias="gpt-4o-mini",
-        display_name="GPT-4o Mini",
-        model_string="gpt-4o-mini",
+    "gpt-sol": ModelEntry(
+        alias="gpt-sol",
+        display_name="GPT-5.6 Sol",
+        model_string="gpt-5.6-sol",
         provider_name="openai",
-        description="Fast & cheap",
+        description="Flagship — complex reasoning & coding",
         is_free=False,
     ),
-    "gpt-4o": ModelEntry(
-        alias="gpt-4o",
-        display_name="GPT-4o",
-        model_string="gpt-4o",
+    "gpt-terra": ModelEntry(
+        alias="gpt-terra",
+        display_name="GPT-5.6 Terra",
+        model_string="gpt-5.6-terra",
         provider_name="openai",
-        description="Multi-modal, writing & creativity",
+        description="Balanced intelligence vs cost",
         is_free=False,
     ),
-    "gpt-4.1": ModelEntry(
-        alias="gpt-4.1",
-        display_name="GPT-4.1",
-        model_string="gpt-4.1",
+    "gpt-luna": ModelEntry(
+        alias="gpt-luna",
+        display_name="GPT-5.6 Luna",
+        model_string="gpt-5.6-luna",
         provider_name="openai",
-        description="Latest & most capable",
+        description="Fast & affordable",
         is_free=False,
     ),
-    "gpt-4.1-mini": ModelEntry(
-        alias="gpt-4.1-mini",
-        display_name="GPT-4.1 Mini",
-        model_string="gpt-4.1-mini",
-        provider_name="openai",
-        description="Fast latest-gen",
+
+    # ─── Semantic Aliases ────────────────────────────────────────────────
+    "coding": ModelEntry(
+        alias="coding",
+        display_name="Claude Sonnet 5",
+        model_string="claude-sonnet-5",
+        provider_name="anthropic",
+        description="→ claude-sonnet (best for coding)",
         is_free=False,
     ),
-    "gpt-4.1-nano": ModelEntry(
-        alias="gpt-4.1-nano",
-        display_name="GPT-4.1 Nano",
-        model_string="gpt-4.1-nano",
+    "research": ModelEntry(
+        alias="research",
+        display_name="Gemini 2.5 Pro",
+        model_string="gemini-2.5-pro",
+        provider_name="google",
+        description="→ gemini-pro (best for research)",
+        is_free=True,
+    ),
+    "writing": ModelEntry(
+        alias="writing",
+        display_name="GPT-5.6 Sol",
+        model_string="gpt-5.6-sol",
         provider_name="openai",
-        description="Ultra-fast, cheapest",
+        description="→ gpt-sol (best for writing)",
+        is_free=False,
+    ),
+    "fast": ModelEntry(
+        alias="fast",
+        display_name="Gemini 2.5 Flash",
+        model_string="gemini-2.5-flash",
+        provider_name="google",
+        description="→ gemini-fast (fastest free model)",
+        is_free=True,
+    ),
+    "vision": ModelEntry(
+        alias="vision",
+        display_name="GPT-5.6 Sol",
+        model_string="gpt-5.6-sol",
+        provider_name="openai",
+        description="→ gpt-sol (multi-modal vision)",
         is_free=False,
     ),
 }
@@ -173,7 +199,7 @@ PROVIDER_MODELS: dict[str, list[str]] = {
     "groq":      ["llama-3.3-70b", "llama-3.1-8b"],
     "google":    ["gemini-fast", "gemini-thinking", "gemini-pro"],
     "anthropic": ["claude-sonnet", "claude-opus", "claude-haiku"],
-    "openai":    ["gpt-4o-mini", "gpt-4o", "gpt-4.1", "gpt-4.1-mini", "gpt-4.1-nano"],
+    "openai":    ["gpt-sol", "gpt-terra", "gpt-luna"],
 }
 
 

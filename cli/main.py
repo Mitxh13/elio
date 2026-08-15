@@ -16,7 +16,7 @@ app = typer.Typer(
 
 console = Console()
 
-VERSION = "0.3.0"
+VERSION = "0.3.5"
 
 
 def version_callback(value: bool):
@@ -49,6 +49,8 @@ def main(
     Run without a subcommand to open the interactive chat with model selector.
     """
     if ctx.invoked_subcommand is None:
+        from config.loader import setup_logging
+        setup_logging()
         from cli.chat import run_chat
         run_chat(provider_override=provider, model_override=model)
 

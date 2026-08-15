@@ -8,8 +8,8 @@ from typing import AsyncIterator
 from google import genai
 from google.genai import types
 
-from elio.providers.base import BaseProvider, Message, FileAttachment, ModelInfo
-from elio.auth.manager import get_api_key
+from providers.base import BaseProvider, Message, FileAttachment, ModelInfo
+from auth.manager import get_api_key
 
 
 # ── Model strings ─────────────────────────────────────────────────────────────
@@ -23,7 +23,7 @@ GEMINI_THINKING  = "gemini-2.5-pro"           # same model, explicit thinking bu
 class GeminiProvider(BaseProvider):
 
     def __init__(self):
-        from elio.auth.oauth import get_google_credentials
+        from auth.oauth import get_google_credentials
         creds = get_google_credentials()
         if creds:
             self.client = genai.Client(credentials=creds)
@@ -41,7 +41,7 @@ class GeminiProvider(BaseProvider):
         )
 
     def validate_credentials(self) -> bool:
-        from elio.auth.oauth import is_google_oauth_logged_in
+        from auth.oauth import is_google_oauth_logged_in
         return get_api_key("google") is not None or is_google_oauth_logged_in()
 
     async def list_models(self) -> list[ModelInfo]:

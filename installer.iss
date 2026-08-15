@@ -1,8 +1,8 @@
 [Setup]
 AppName=Elio
-AppVersion=0.3.0
+AppVersion=0.3.5
 AppPublisher=Elio Labs
-UninstallDisplayName=Elio CLI v0.3.0
+UninstallDisplayName=Elio CLI v0.3.5
 DefaultDirName={localappdata}\ElioCLI
 OutputDir=dist
 OutputBaseFilename=Elio-Setup
