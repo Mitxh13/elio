@@ -7,8 +7,8 @@ API key: console.groq.com (free sign-up, takes 30 seconds)
 from typing import AsyncIterator
 from openai import AsyncOpenAI   # Groq is OpenAI-API-compatible
 
-from elio.providers.base import BaseProvider, Message, FileAttachment, ModelInfo
-from elio.auth.manager import get_api_key
+from providers.base import BaseProvider, Message, FileAttachment, ModelInfo
+from auth.manager import get_api_key
 
 
 class GroqProvider(BaseProvider):

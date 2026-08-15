@@ -31,7 +31,8 @@ SUPPORTED_EXTENSIONS = {
 PROVIDER_SUPPORT = {
     "anthropic": {"image/png", "image/jpeg", "image/gif", "image/webp", "application/pdf", "text/plain"},
     "openai":    {"image/png", "image/jpeg", "image/gif", "image/webp", "text/plain"},
-    "google":    {"image/png", "image/jpeg", "image/gif", "image/webp", "text/plain"},
+    "google":    {"image/png", "image/jpeg", "image/gif", "image/webp", "application/pdf", "text/plain"},
+    "groq":      {"text/plain"},
 }
 
 

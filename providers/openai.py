@@ -3,8 +3,8 @@ import asyncio
 from typing import AsyncIterator
 from openai import AsyncOpenAI
 
-from elio.providers.base import BaseProvider, Message, FileAttachment, ModelInfo
-from elio.auth.manager import get_api_key
+from providers.base import BaseProvider, Message, FileAttachment, ModelInfo
+from auth.manager import get_api_key
 
 
 class OpenAIProvider(BaseProvider):
@@ -20,17 +20,15 @@ class OpenAIProvider(BaseProvider):
 
     async def list_models(self) -> list[ModelInfo]:
         return [
-            ModelInfo("gpt-4o-mini",  "gpt-4o-mini",  "openai", "Fast & very cheap"),
-            ModelInfo("gpt-4o",       "gpt-4o",       "openai", "Multi-modal, writing & creativity"),
-            ModelInfo("gpt-4.1",      "gpt-4.1",      "openai", "Latest & most capable"),
-            ModelInfo("gpt-4.1-mini", "gpt-4.1-mini", "openai", "Fast latest-gen"),
-            ModelInfo("gpt-4.1-nano", "gpt-4.1-nano", "openai", "Ultra-fast, cheapest"),
+            ModelInfo("gpt-sol",   "gpt-5.6-sol",   "openai", "Flagship — complex reasoning & coding"),
+            ModelInfo("gpt-terra", "gpt-5.6-terra", "openai", "Balanced intelligence vs cost"),
+            ModelInfo("gpt-luna",  "gpt-5.6-luna",  "openai", "Fast & affordable"),
         ]
 
     async def stream_chat(
         self,
         messages: list[Message],
-        model: str = "gpt-4o-mini",
+        model: str = "gpt-5.6-luna",
         files: list[FileAttachment] | None = None,
         alias: str | None = None,
     ) -> AsyncIterator[str]:
@@ -49,6 +47,12 @@ class OpenAIProvider(BaseProvider):
                             content.append({
                                 "type": "image_url",
                                 "image_url": {"url": f"data:{f.mime_type};base64,{b64}"},
+                            })
+                        elif f.mime_type == "application/pdf":
+                            # OpenAI doesn't support native PDF — warn user
+                            content.append({
+                                "type": "text",
+                                "text": f"[Note: PDF file '{f.name}' attached, but OpenAI does not support native PDF input. Use Claude or Gemini for PDF analysis.]",
                             })
                         else:
                             text_content = f.data.decode("utf-8", errors="replace")
