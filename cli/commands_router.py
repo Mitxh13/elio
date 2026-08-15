@@ -51,7 +51,7 @@ class CommandResult:
     should_exit: bool = False         # exit the chat loop
 
 
-VERSION = "0.3.0"
+VERSION = "0.3.5"
 
 HELP_TEXT = """
 [bold #d4a574]╭─── Elio Commands ───╮[/bold #d4a574]
