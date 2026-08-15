@@ -32,6 +32,7 @@ from prompt_toolkit import PromptSession
 from prompt_toolkit.history import FileHistory
 from prompt_toolkit.styles import Style as PTStyle
 from prompt_toolkit.formatted_text import HTML
+from prompt_toolkit.key_binding import KeyBindings
 from pathlib import Path
 
 from providers.registry import (
@@ -42,11 +43,12 @@ from providers.registry import (
 from providers.base import Message
 from config.loader import load_config, save_config
 from session.manager import SessionManager
+from session.context import truncate_history
 from auth.manager import get_api_key, is_provider_ready
 from utils.error import friendly_error
 
 console = Console()
-VERSION = "0.3.0"
+VERSION = "0.3.5"
 
 # ── Provider accent colors ───────────────────────────────────────────────────
 
@@ -65,16 +67,57 @@ PT_STYLE = PTStyle.from_dict({
 })
 
 
+# ── Keyboard shortcuts ───────────────────────────────────────────────────────
+
+def create_key_bindings(chat_state: dict):
+    """Create prompt_toolkit key bindings for the chat interface."""
+    kb = KeyBindings()
+
+    @kb.add('c-m')
+    def _(event):
+        """Ctrl+M — open model/provider selector."""
+        chat_state["pending_command"] = "/provider"
+        event.current_buffer.validate_and_handle()
+
+    @kb.add('c-u')
+    def _(event):
+        """Ctrl+U — attach file prompt."""
+        chat_state["pending_command"] = "/attach "
+        event.current_buffer.validate_and_handle()
+
+    @kb.add('c-n')
+    def _(event):
+        """Ctrl+N — new session (clear context)."""
+        chat_state["pending_command"] = "/clear"
+        event.current_buffer.validate_and_handle()
+
+    @kb.add('c-h')
+    def _(event):
+        """Ctrl+H — show session history."""
+        chat_state["pending_command"] = "/history"
+        event.current_buffer.validate_and_handle()
+
+    @kb.add('c-l')
+    def _(event):
+        """Ctrl+L — clear screen and context."""
+        chat_state["pending_command"] = "/clear"
+        event.current_buffer.validate_and_handle()
+
+    return kb
+
+
 # ── ASCII Art ────────────────────────────────────────────────────────────────
 
 MASCOT = """\
-[#d4a574]    ██████
-   ██[#e8c9a0]████[/#e8c9a0]██
-   ██[#1a1a2e]█[/#1a1a2e]█[#e8c9a0]██[/#e8c9a0][#1a1a2e]█[/#1a1a2e]██
-   ████████
-    ██  ██[/#d4a574]"""
+    ▄▄▄▄▄      ██    [#7878FF]▄▄[/#7878FF]      ▄▄▄     ▄▄▄
+  ▄██▀▀▀██▄    ██    [#7878FF]▀▀[/#7878FF]    ▄██▀▀     ▀▀██▄
+ ███     ███   ██          ██           ██
+ ███████████   ██    ██    ██           ██
+ ███           ██    ██    ██           ██
+  ▀██▄▄▄██▀    ██    ██    ▀██▄▄     ▄▄██▀
+    ▀▀▀▀▀      ▀▀    ▀▀      ▀▀▀     ▀▀▀"""
 
-ELIO_TITLE = "[bold #d4a574]Elio[/bold #d4a574]"
+ELIO_TITLE = "[bold #7878FF]Elio[/bold #7878FF]"
 
 
 # ── Welcome Dashboard ───────────────────────────────────────────────────────
@@ -226,7 +269,7 @@ def _login_label(provider_key: str) -> str:
     """Return a human-readable login method label for a provider."""
     info = PROVIDERS[provider_key]
     if info.login_method == "oauth_or_key":
-        return "[green]Sign in with Google  or  free API key[/green]"
+        return "[green]Free API key (aistudio.google.com)[/green]"
     elif info.login_method == "api_key":
         return "[green]Free API key (console.groq.com)[/green]"
     else:
@@ -262,7 +305,7 @@ def select_ai() -> tuple[str, str] | None:
         "groq":      "Llama 3.3, Llama 3.1",
         "google":    "Gemini 2.5 Flash / Pro",
         "anthropic": "Claude Sonnet 5 / Opus / Haiku",
-        "openai":    "GPT-4o, GPT-4.1, 4.1 Nano",
+        "openai":    "GPT-5.6 Sol / Terra / Luna",
     }
 
     for i, key in enumerate(PROVIDER_ORDER, 1):
@@ -521,6 +564,9 @@ def run_chat(
     session_manager = SessionManager()
     session_manager.start_new(current_alias)
 
+    chat_state = {"pending_command": None}
+    key_bindings = create_key_bindings(chat_state)
+
     history: list[Message] = []
     attached_files = []
 
@@ -533,6 +579,8 @@ def run_chat(
             current_provider=current_provider,
             current_alias=current_alias,
             config=config,
+            key_bindings=key_bindings,
+            chat_state=chat_state,
         ))
     except KeyboardInterrupt:
         console.print("\n[dim]Goodbye! [/dim]")
@@ -543,6 +591,7 @@ def run_chat(
 async def _chat_loop(
     session, session_manager, history, attached_files,
     current_provider, current_alias, config,
+    key_bindings=None, chat_state=None,
 ):
     from cli.commands_router import route_command
 
@@ -557,8 +606,29 @@ async def _chat_loop(
                 "":       "#93a1a1",
             })
 
-            text = await session.prompt_async(prompt, style=pt_style)
+            text = await session.prompt_async(prompt, style=pt_style, key_bindings=key_bindings)
             text = text.strip()
+
+            # Handle keyboard shortcut commands
+            if chat_state and chat_state.get("pending_command"):
+                cmd = chat_state.pop("pending_command")
+                chat_state["pending_command"] = None
+                if cmd == "/attach ":
+                    # For attach, prompt for the file path
+                    console.print("[cyan]  Enter file path to attach:[/cyan] ", end="")
+                    try:
+                        attach_path = input().strip()
+                        if attach_path:
+                            text = f"/attach {attach_path}"
+                        else:
+                            console.print("[dim]  Cancelled.[/dim]")
+                            continue
+                    except (KeyboardInterrupt, EOFError):
+                        console.print("[dim]  Cancelled.[/dim]")
+                        continue
+                else:
+                    text = cmd
+
             if not text:
                 continue
 
@@ -595,6 +665,7 @@ async def _chat_loop(
                 current_alias=current_alias,
                 current_provider=current_provider,
                 session_manager=session_manager,
+                config=config,
             )
 
         except KeyboardInterrupt:
@@ -606,7 +677,7 @@ async def _chat_loop(
 
 
 async def _send_message(
-    text, history, attached_files, current_alias, current_provider, session_manager,
+    text, history, attached_files, current_alias, current_provider, session_manager, config=None,
 ):
     entry = resolve_model(current_alias)
     info  = PROVIDERS[current_provider]
@@ -625,8 +696,12 @@ async def _send_message(
         full_response = ""
         had_error     = False
 
+        # Truncate history if needed to fit context window
+        max_tokens = config.max_context_tokens if config else 8000
+        api_messages = truncate_history(history, max_tokens=max_tokens)
+
         async for token in provider.stream_chat(
-            messages=history,
+            messages=api_messages,
             model=entry.model_string,
             files=attached_files or None,
             alias=current_alias,          # ← needed for thinking config, retry logic
