@@ -70,12 +70,16 @@ PT_STYLE = PTStyle.from_dict({
 # ── Keyboard shortcuts ───────────────────────────────────────────────────────
 
 def create_key_bindings(chat_state: dict):
-    """Create prompt_toolkit key bindings for the chat interface."""
+    """Create prompt_toolkit key bindings for the chat interface.
+
+    NOTE: Ctrl+M is Enter (ASCII 13) and Ctrl+H is Backspace in most terminals.
+    We must NEVER bind those or it will break basic input.
+    """
     kb = KeyBindings()
 
-    @kb.add('c-m')
+    @kb.add('c-p')
     def _(event):
-        """Ctrl+M — open model/provider selector."""
+        """Ctrl+P — open model/provider selector."""
         chat_state["pending_command"] = "/provider"
         event.current_buffer.validate_and_handle()
 
@@ -91,9 +95,9 @@ def create_key_bindings(chat_state: dict):
         chat_state["pending_command"] = "/clear"
         event.current_buffer.validate_and_handle()
 
-    @kb.add('c-h')
+    @kb.add('c-b')
     def _(event):
-        """Ctrl+H — show session history."""
+        """Ctrl+B — show session history."""
         chat_state["pending_command"] = "/history"
         event.current_buffer.validate_and_handle()
 

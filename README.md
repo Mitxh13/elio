@@ -89,11 +89,11 @@ While inside the Elio chat interface.
 | :--- | :--- |
 | **Enter** | Send message |
 | **Shift+Enter** | New line in input |
-| **Ctrl+M** | Open the interactive model selector |
+| **Ctrl+P** | Open the interactive model selector |
 | **Ctrl+U** | Open file attachment prompt |
 | **Ctrl+N** | Start a new session |
 | **Ctrl+L** | Clear chat panel |
-| **Ctrl+H** | Show session history |
+| **Ctrl+B** | Show session history |
 | **Ctrl+C** | Interrupt streaming / Quit |
 
 #### Interactive TUI Slash Commands
